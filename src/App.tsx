@@ -2,14 +2,29 @@ import { useEffect, useState } from 'react'
 import './App.css'
 import Textarea from './components/textarea';
 
-const getPlayers = (players: string) => players.split(',').map(p => p.trim()).filter(p => p !== '');
+const getPlayers = (players: string) =>
+  players
+    .split(',')
+    .map(p => p.trim())
+    .filter(p => p !== '')
+
+// Fisher–Yates shuffle
+function shuffleArray<T>(array: T[]): T[] {
+  const a = [...array]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
 
 function App() {
   const [players, setPlayers] = useState('Miguel, Alcides, Alfonso, Edgard, Mc Jory, Daniel, Hector, Pacho');
   const [tables, setTables] = useState(0);
 
   const onGenerate = () => {
-    const shuffledPlayers = getPlayers(players).sort(() => Math.random() - 0.5);
+    // use Fisher–Yates
+    const shuffledPlayers = shuffleArray(getPlayers(players))
 
     const rounds: Array<Array<[string[], string[]]>> = [];
 
@@ -20,16 +35,16 @@ function App() {
     const firstThreeRounds: Array<Array<[string[], string[]]>> = [
       [
         [[table1[0], table1[1]], [table1[2], table1[3]]],
-        [[table2[0], table2[1]], [table2[2], table2[3]]]
+        [[table2[0], table2[1]], [table2[2], table2[3]]],
       ],
       [
         [[table1[0], table1[2]], [table1[3], table1[1]]],
-        [[table2[0], table2[2]], [table2[3], table2[1]]]
+        [[table2[0], table2[2]], [table2[3], table2[1]]],
       ],
       [
         [[table1[0], table1[3]], [table1[1], table1[2]]],
-        [[table2[0], table2[3]], [table2[1], table2[2]]]
-      ]
+        [[table2[0], table2[3]], [table2[1], table2[2]]],
+      ],
     ];
     rounds.push(...firstThreeRounds);
 
@@ -37,44 +52,49 @@ function App() {
     const remainingRounds: Array<Array<[string[], string[]]>> = [
       [
         [[table1[0], table2[0]], [table1[1], table2[2]]],
-        [[table2[1], table1[3]], [table1[2], table2[3]]]
+        [[table2[1], table1[3]], [table1[2], table2[3]]],
       ],
       [
         [[table1[0], table2[2]], [table1[1], table2[0]]],
-        [[table2[1], table1[2]], [table1[3], table2[3]]]
+        [[table2[1], table1[2]], [table1[3], table2[3]]],
       ],
       [
         [[table1[0], table2[1]], [table2[3], table1[1]]],
-        [[table1[2], table2[2]], [table2[0], table1[3]]]
+        [[table1[2], table2[2]], [table2[0], table1[3]]],
       ],
       [
         [[table1[0], table2[3]], [table1[1], table2[1]]],
-        [[table1[3], table2[2]], [table1[2], table2[0]]]
-      ]
+        [[table1[3], table2[2]], [table1[2], table2[0]]],
+      ],
     ];
     rounds.push(...remainingRounds);
 
-    // Display all rounds
+    // Render rounds
     const tablesDisplay = rounds
-      .map((round, roundIndex) => {
-        const roundNumber = roundIndex + 1;
+      .map((round, i) => {
+        const n = i + 1
         return [
-          `\n=== ROUND ${roundNumber} ===`,
-          round.map((table, tableIndex) => 
-            `Mesa ${tableIndex + 1}: [${table[0].join(' & ')}] vs [${table[1]?.join(' & ') || 'Waiting...'}]`
-          ).join('\n')
-        ].join('\n');
+          `\n=== ROUND ${n} ===`,
+          round
+            .map(
+              (t, idx) =>
+                `Mesa ${idx + 1}: [${t[0].join(' & ')}] vs [${t[1].join(
+                  ' & '
+                )}]`
+            )
+            .join('\n'),
+        ].join('\n')
       })
-      .join('\n');
-      
-    document.querySelector('.read-the-docs')!.textContent = tablesDisplay;
+      .join('\n')
+
+    document.querySelector<HTMLElement>('.read-the-docs')!.textContent =
+      tablesDisplay
   }
 
   const autoCalculateTableNumber = () => {
-    const arrPlayers = getPlayers(players);
-    const newTables = arrPlayers.length / 4;
-    setTables(newTables);
-  };
+    const arr = getPlayers(players)
+    setTables(arr.length / 4)
+  }
 
   useEffect(() => {
     autoCalculateTableNumber();
@@ -93,16 +113,14 @@ function App() {
         <div>
           <label>Numero de mesas {tables}</label>
         </div>
-        <button 
-          onClick={onGenerate} 
+        <button
+          onClick={onGenerate}
           disabled={getPlayers(players).length !== 8}
         >
           Generar
         </button>
       </div>
-      <pre className="read-the-docs">
-        
-      </pre>
+      <pre className="read-the-docs"></pre>
     </>
   )
 }
